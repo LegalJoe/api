@@ -2,10 +2,7 @@ const router = require('express').Router()
 const { User, UserDoc, Email } = require('../server/models')
 const passport = require('../config/auth')
 const authenticate = passport.authorize('jwt', { session: false })
-const nodemailer = require('nodemailer');
-
-const mailPassword = process.env.LEGALJOEPASSWORD
-const mailUsername = process.env.LEGALJOEEMAIL
+const { transporter, emailFrom } = require('../config/email')
 
 router.get('/docs', authenticate, (req, res, next) => {
   if (!req.account && req.account.admin === false) {
@@ -30,14 +27,6 @@ router.get('/docs', authenticate, (req, res, next) => {
 })
 
 router.put('/admindocs', (req, res, next) => {
-  var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: mailUsername,
-      pass: mailPassword  //this should be set to an env-when we deploy
-    }
-  });
-
   const resUserName = req.body.data.tags[0]
   const resUserEmail = req.body.data.tags[1]
   const id = req.body.data.tags[2]
@@ -52,7 +41,7 @@ Email.findAll()
     textChecked = email[0].textChecked
 
   const mailOptions = {
-      from: mailUsername,
+      from: emailFrom,
       to: resUserEmail,
       subject: subjectTwo,
       text: textChecked + `\nHet contract is hier: ${resCloudinaryURL}`,

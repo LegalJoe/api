@@ -1,23 +1,11 @@
 const router = require('express').Router()
 const { UserDoc, Email } = require('../server/models')
-const nodemailer = require('nodemailer');
+const { transporter, emailFrom } = require('../config/email')
 const passport = require('../config/auth')
 const authenticate = passport.authorize('jwt', { session: false });
 
-const mailPassword = process.env.LEGALJOEPASSWORD
-const mailUsername = process.env.LEGALJOEEMAIL
-
 //send an email with the input text
 router.post('/userdocs', (req, res, next) => {
-  // create reusable transporter object using the default SMTP transport
-  var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: mailUsername,
-      pass: mailPassword //this should be set to an env-when we deploy
-    }
-  });
-
   const resUserName = req.body.data.tags[0]
   const resUserEmail = req.body.data.tags[1]
   const resUserPaid = (req.body.data.tags[2] === "true") ? true : false
@@ -43,7 +31,7 @@ router.post('/userdocs', (req, res, next) => {
 
       // setup e-mail data with unicode symbols
       const mailOptions = {
-          from: mailUsername, // sender address
+          from: emailFrom, // sender address
           to: resUserEmail, // list of receivers
           subject: subjectOne, // Subject line
           text: userText, // plaintext body
@@ -54,8 +42,8 @@ router.post('/userdocs', (req, res, next) => {
       : (`Contract is verstuurd met volgende tekst: "${userText}" Het contract is hier: ${resCloudinaryURL}. De klant heeft de gratis optie gekozen`)
 
       const mailJoe = {
-          from: mailUsername, // sender address
-          to: mailUsername, // list of receivers
+          from: emailFrom, // sender address
+          to: emailFrom, // list of receivers
           subject: `${resUserEmail}`, // Subject line
           text: joeText, // plaintext body
       };
